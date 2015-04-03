@@ -1,0 +1,15 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="android:colorBackground">#2b2b2b</item>
+        <item name="colorPrimary">#eee</item>
+        <item name="colorPrimaryDark">#ccc</item>
+        <item name="android:textColorPrimary">#eee</item>
+        <item name="android:textColor">#fff</item>
+        <item name="android:textColorSecondary">#ddd</item>
+        <item name="colorAccent">@android:color/holo_blue_bright</item>
+    </style>
+
+</resources>

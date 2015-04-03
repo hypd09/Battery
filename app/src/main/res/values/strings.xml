@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">Battery</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="battery_cold">Cold</string>
+    <string name="battery_dead">Dead</string>
+    <string name="battery_good">Good</string>
+    <string name="battery_overheat">Overheat</string>
+    <string name="battery_over_voltage">Over Voltage</string>
+    <string name="battery_unknown">Unknown</string>
+    <string name="battery_unspecified_failure">Unknown failure</string>
+    <string name="battery_plugged_ac">Plugged in (AC)</string>
+    <string name="battery_plugged_usb">Plugged in (USB)</string>
+    <string name="battery_plugged_wireless">Plugged in (Wireless)</string>
+    <string name="battery_status_charging">Plugged in</string>
+    <string name="battery_status_discharging">Discharging</string>
+    <string name="battery_status_full">Full</string>
+    <string name="battery_status_not_charging">Not charging</string>
+    <string name="battery_status_unknown">Unknown</string>
+
+    <string name="battery_property_capacity">Capacity</string>
+    <string name="battery_property_charge_counter">Charge</string>
+    <string name="battery_property_current_average">Current(average)</string>
+    <string name="battery_property_current_now">Current(now)</string>
+    <string name="battery_property_energy_counter">Energy</string>
+
+    <string name="battery_property_charge_counter_unit">μAh</string>
+    <string name="battery_property_current_average_unit">μA</string>
+    <string name="battery_property_current_now_unit">μA</string>
+    <string name="battery_property_energy_counter_unit">nWh</string>
+</resources>
