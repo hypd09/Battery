@@ -1,12 +1,28 @@
 package hypd.battery;
 
-import android.content.res.Resources;
 import android.os.BatteryManager;
 
 import com.google.gson.annotations.Expose;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+
 public class BatteryPoint {
-    // @Expose tells GSON to serialise these fields, ones not with this annotation will be ignored
+    public static String battery_cold = "Cold",
+            battery_dead = "Dead",
+            battery_good = "Good",
+            battery_overheat = "Overheat",
+            battery_over_voltage = "Over Voltage",
+            battery_unknown = "Unknown",
+            battery_unspecified_failure = "Unknown failure",
+            battery_plugged_ac = "Plugged in (AC)",
+            battery_plugged_usb = "Plugged in (USB)",
+            battery_plugged_wireless = "Plugged in (Wireless)",
+            battery_status_charging = "Plugged in",
+            battery_status_discharging = "Discharging",
+            battery_status_full = "Full",
+            battery_status_not_charging = "Not charging",
+            battery_status_unknown = "Unknown";
     @Expose
     public String health, technology, plugged, status;
     @Expose
@@ -14,46 +30,47 @@ public class BatteryPoint {
     @Expose
     public int level, scale, temperature, voltage;
     @Expose
-    public boolean present;
-
-    // Only used to get Strings from res/values/strings.xml
-    // don't need to store it and increase size
-    private Resources resources;
+    public boolean present, isCharging;
+    DecimalFormat df = new DecimalFormat("##.##");
+    // @Expose tells GSON to serialise these fields, ones not with this annotation will be ignored
+    private String micro_unit = "\u00b5";
+//    private String battery_property_capacity = "Capacity";
+//    private String battery_property_charge_counter = "Charge";
+//    private String battery_property_current_average = "Current(average)";
+//    private String battery_property_current_now = "Current(now)";
+//    private String battery_property_energy_counter = "Energy";
 
     public BatteryPoint() {
-    }
-
-    public BatteryPoint(Resources resources) {
         setPropertyChargeCounter(0);
         setPropertyCurrentAverage(0);
         setPropertyCurrentNow(0);
         setPropertyEnergyCounter(0);
-        this.resources = resources;
+        df.setRoundingMode(RoundingMode.HALF_UP);
     }
 
     public void setHealth(int healthCode) {
         switch (healthCode) {
             case BatteryManager.BATTERY_HEALTH_GOOD:
-                health = resources.getString(R.string.battery_good);
+                health = battery_good;
                 break;
             case BatteryManager.BATTERY_HEALTH_COLD:
-                health = resources.getString(R.string.battery_cold);
+                health = battery_cold;
                 break;
             case BatteryManager.BATTERY_HEALTH_DEAD:
-                health = resources.getString(R.string.battery_dead);
+                health = battery_dead;
                 break;
             case BatteryManager.BATTERY_HEALTH_OVER_VOLTAGE:
-                health = resources.getString(R.string.battery_over_voltage);
+                health = battery_over_voltage;
                 break;
             case BatteryManager.BATTERY_HEALTH_OVERHEAT:
-                health = resources.getString(R.string.battery_over_voltage);
+                health = battery_overheat;
                 break;
             case BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE:
-                health = resources.getString(R.string.battery_unspecified_failure);
+                health = battery_unspecified_failure;
                 break;
             case BatteryManager.BATTERY_HEALTH_UNKNOWN:
             default:
-                health = resources.getString(R.string.battery_unknown);
+                health = battery_unknown;
         }
     }
 
@@ -62,32 +79,38 @@ public class BatteryPoint {
     }
 
     public void setPlugged(int pluggedCode) {
-        if (pluggedCode == BatteryManager.BATTERY_PLUGGED_AC)
-            this.plugged = resources.getString(R.string.battery_plugged_ac);
-        else if (pluggedCode == BatteryManager.BATTERY_PLUGGED_USB)
-            this.plugged = resources.getString(R.string.battery_plugged_usb);
-        else if (pluggedCode == BatteryManager.BATTERY_PLUGGED_WIRELESS)
-            this.plugged = resources.getString(R.string.battery_plugged_wireless);
-        else this.plugged = null;
+        if (pluggedCode == BatteryManager.BATTERY_PLUGGED_AC) {
+            this.plugged = battery_plugged_ac;
+            isCharging = true;
+        } else if (pluggedCode == BatteryManager.BATTERY_PLUGGED_USB) {
+            this.plugged = battery_plugged_usb;
+            isCharging = true;
+        } else if (pluggedCode == BatteryManager.BATTERY_PLUGGED_WIRELESS) {
+            this.plugged = battery_plugged_wireless;
+            isCharging = false;
+        } else {
+            this.plugged = null;
+            isCharging = false;
+        }
     }
 
     public void setStatus(int statusCode) {
         switch (statusCode) {
             case BatteryManager.BATTERY_STATUS_CHARGING:
-                status = resources.getString(R.string.battery_status_charging);
+                status = battery_status_charging;
                 break;
             case BatteryManager.BATTERY_STATUS_DISCHARGING:
-                status = resources.getString(R.string.battery_status_discharging);
+                status = battery_status_discharging;
                 break;
             case BatteryManager.BATTERY_STATUS_FULL:
-                status = resources.getString(R.string.battery_status_full);
+                status = battery_status_full;
                 break;
             case BatteryManager.BATTERY_STATUS_NOT_CHARGING:
-                status = resources.getString(R.string.battery_status_not_charging);
+                status = battery_status_not_charging;
                 break;
             case BatteryManager.BATTERY_STATUS_UNKNOWN:
             default:
-                status = resources.getString(R.string.battery_status_unknown);
+                status = battery_status_unknown;
         }
     }
 
@@ -107,45 +130,55 @@ public class BatteryPoint {
         this.temperature = temperature;
     }
 
+    public float getVoltage() {
+        float v = voltage / 1000f;
+        DecimalFormat decimalFormat = new DecimalFormat("#.###");
+        return Float.parseFloat(df.format(v));
+    }
+
     public void setVoltage(int voltage) {
         this.voltage = voltage;
     }
 
     public float getTemperatureInCelsius() {
-        if (temperature < 100)
-            return (float) temperature;
-        else if (temperature < 1000)
-            return temperature / 10;
+        if (temperature < 100f)
+            return Float.parseFloat(df.format(temperature));
+        else if (temperature < 1000f)
+            return Float.parseFloat(df.format(temperature / 10f));
         else
-            return temperature / 100;
+            return Float.parseFloat(df.format(temperature / 100f));
     }
 
     public float getTemperatureInKelvin() {
-        return (float) (getTemperatureInCelsius() + 273.15);
+        return (getTemperatureInCelsius() + 273.15f);
     }
 
     public float getTemperatureInFahrenheit() {
-        return (float) (getTemperatureInCelsius() * (9 / 5) + 32);
+        float tempInC = 0;
+        if (temperature < 100f)
+            tempInC = (float) temperature;
+        else if (temperature < 1000f)
+            tempInC = temperature / 10f;
+        else
+            tempInC = temperature / 100f;
+
+        return Float.parseFloat(df.format((tempInC * (9f / 5f) + 32f)));
     }
 
     public void setPropertyChargeCounter(int propertyChargeCounter) {
-        this.propertyChargeCounter = propertyChargeCounter +
-                resources.getString(R.string.battery_property_charge_counter_unit);
+        this.propertyChargeCounter = propertyChargeCounter + micro_unit + "Ah";
     }
 
     public void setPropertyCurrentNow(int propertyCurrentNow) {
-        this.propertyCurrentNow = propertyCurrentNow +
-                resources.getString(R.string.battery_property_current_now_unit);
+        this.propertyCurrentNow = propertyCurrentNow + micro_unit + "A";
     }
 
     public void setPropertyCurrentAverage(int propertyCurrentAverage) {
-        this.propertyCurrentAverage = propertyCurrentAverage +
-                resources.getString(R.string.battery_property_current_average_unit);
+        this.propertyCurrentAverage = propertyCurrentAverage + micro_unit + "A";
     }
 
     public void setPropertyEnergyCounter(long propertyEnergyCounter) {
-        this.propertyEnergyCounter = propertyEnergyCounter +
-                resources.getString(R.string.battery_property_energy_counter_unit);
+        this.propertyEnergyCounter = propertyEnergyCounter + "nWh";
     }
 
     // Just for when you need to just print it to check, call BatteryPoint.toString()

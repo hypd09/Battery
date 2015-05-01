@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,14 +21,10 @@ public class BatteryMonitoringService extends Service {
 
     private BroadcastReceiver mBatInfoReceiver;
     private ArrayList<BatteryPoint> batteryPoints;
-    private Resources resources;
     private SharedPreferences prefs;
     private Gson gson;
     private BatteryManager batteryManager;
-
-    //need a default constructor, don't remember why
-    public BatteryMonitoringService() {
-    }
+    private BatteryPoint point;
 
     // Remember how this is the first one to be called when activity is created? same in Service
     @Override
@@ -39,7 +34,6 @@ public class BatteryMonitoringService extends Service {
         // most common source of error, not initialising them
         batteryPoints = new ArrayList<>();
         // Gets everything from res/
-        resources = getResources();
 
         /**
          * GSON is a library by Google that makes serialising data a breeze.
@@ -55,7 +49,6 @@ public class BatteryMonitoringService extends Service {
         if (Build.VERSION.SDK_INT >= 21) {
             batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
         }
-
         /**
          * You can safely NOT understand this, I don't either.
          * Remember broadcast receivers? yeah.. this is that..
@@ -69,7 +62,7 @@ public class BatteryMonitoringService extends Service {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Bundle bundle = intent.getExtras();
-                BatteryPoint point = new BatteryPoint(resources);
+                point = new BatteryPoint();
                 if (bundle.containsKey(BatteryManager.EXTRA_HEALTH))
                     point.setHealth(bundle.getInt(BatteryManager.EXTRA_HEALTH));
                 if (bundle.containsKey(BatteryManager.EXTRA_LEVEL))
@@ -96,6 +89,7 @@ public class BatteryMonitoringService extends Service {
                     point.setPropertyEnergyCounter(batteryManager.getLongProperty(BatteryManager.BATTERY_PROPERTY_ENERGY_COUNTER));
                 }
                 batteryPoints.add(point);
+                System.out.println("working " + point.toString());
                 saveData(point);
             }
         };
@@ -104,11 +98,11 @@ public class BatteryMonitoringService extends Service {
     /**
      * Rewrites the serialised arraylist in prefs and also adds the latest point, if you need it alag se
      *
-     * @param point
+     * @param nuPoint BatteryPoint object to save
      */
-    private void saveData(BatteryPoint point) {
+    private void saveData(BatteryPoint nuPoint) {
         prefs.edit().putString("points", gson.toJson(batteryPoints))
-                .putString("latest", gson.toJson(point))
+                .putString("latest", gson.toJson(nuPoint))
                 .apply();
     }
 
@@ -128,9 +122,11 @@ public class BatteryMonitoringService extends Service {
                     new TypeToken<ArrayList<BatteryPoint>>() {
                     }.getType()
             );
+            prefs.edit().clear().apply(); //clears prefs when app first opened to wipe old data, get rid of this
             batteryPoints.clear();
             batteryPoints.addAll(points);
         }
+
         this.registerReceiver(this.mBatInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         return super.onStartCommand(intent, flags, startId);
     }
