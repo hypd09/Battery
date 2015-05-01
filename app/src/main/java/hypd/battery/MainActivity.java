@@ -5,6 +5,10 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.text.format.DateUtils;
 import android.view.View;
@@ -21,6 +25,7 @@ import java.util.Locale;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import hypd.battery.fragments.ChartFragment;
 
 public class MainActivity extends ActionBarActivity
         implements SharedPreferences.OnSharedPreferenceChangeListener {
@@ -40,8 +45,8 @@ public class MainActivity extends ActionBarActivity
     TextView batteryTech;
     @InjectView(R.id.charging_time)
     TextView chargingTime;
-    //    @InjectView(R.id.charts)
-//    ViewPager chartsView;
+    @InjectView(R.id.charts)
+    ViewPager chartsView;
     @InjectView(R.id.fab_service)
     FloatingActionButton button;
     private SharedPreferences prefs;
@@ -67,7 +72,7 @@ public class MainActivity extends ActionBarActivity
             }
         }
     };
-//    private ChartFragment levelFragment, tempFragment, voltageFragment;
+    private ChartFragment levelFragment, tempFragment, voltageFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,13 +92,13 @@ public class MainActivity extends ActionBarActivity
         }
         points = new ArrayList<>();
 
-//        levelFragment = ChartFragment.newInstance(ChartFragment.TYPE_LEVEL);
-//        voltageFragment = ChartFragment.newInstance(ChartFragment.TYPE_VOLTAGE);
-//        tempFragment = ChartFragment.newInstance(ChartFragment.TYPE_TEMP);
-//
-//        ChartsAdapter adapter = new ChartsAdapter(getSupportFragmentManager());
-//        chartsView.setAdapter(adapter);
-//        chartsView.setOffscreenPageLimit(3);
+        levelFragment = ChartFragment.newInstance(ChartFragment.TYPE_LEVEL);
+        voltageFragment = ChartFragment.newInstance(ChartFragment.TYPE_VOLTAGE);
+        tempFragment = ChartFragment.newInstance(ChartFragment.TYPE_TEMP);
+
+        ChartsAdapter adapter = new ChartsAdapter(getSupportFragmentManager());
+        chartsView.setAdapter(adapter);
+        chartsView.setOffscreenPageLimit(3);
 
 
         serviceIntent = new Intent(this, BatteryMonitoringService.class);
@@ -133,9 +138,6 @@ public class MainActivity extends ActionBarActivity
             button.setColorNormal(stopNormal);
             button.setColorPressed(stopPressed);
             button.setLabelText("Stop logging");
-//            levelFragment.startMonitoring();
-//            voltageFragment.startMonitoring();
-//            tempFragment.startMonitoring();
         } else {
             button.setColorNormal(startNormal);
             button.setColorPressed(startPressed);
@@ -151,17 +153,17 @@ public class MainActivity extends ActionBarActivity
                     button.setLabelText("Stop logging");
                     isServiceRunning = true;
                     startService(serviceIntent);
-//                    levelFragment.startMonitoring();
-//                    voltageFragment.startMonitoring();
-//                    tempFragment.startMonitoring();
+                    levelFragment.startMonitoring();
+                    voltageFragment.startMonitoring();
+                    tempFragment.startMonitoring();
                 } else {
                     button.setColorNormal(startNormal);
                     button.setColorPressed(startPressed);
                     button.setLabelText("Start logging");
                     isServiceRunning = false;
-//                    levelFragment.stopMonitoring();
-//                    voltageFragment.stopMonitoring();
-//                    tempFragment.stopMonitoring();
+                    levelFragment.stopMonitoring();
+                    voltageFragment.stopMonitoring();
+                    tempFragment.stopMonitoring();
                     stopService(serviceIntent);
                     chargingTime.setVisibility(View.GONE);
                     timeHandler.removeCallbacks(timeRunnable);
@@ -193,9 +195,9 @@ public class MainActivity extends ActionBarActivity
     @Override
     protected void onPause() {
         super.onPause();
-//        levelFragment.stopMonitoring();
-//        voltageFragment.stopMonitoring();
-//        tempFragment.stopMonitoring();
+        levelFragment.stopMonitoring();
+        voltageFragment.stopMonitoring();
+        tempFragment.stopMonitoring();
         timeHandler.removeCallbacks(timeRunnable);
     }
 
@@ -206,14 +208,14 @@ public class MainActivity extends ActionBarActivity
      */
     private void ChangeValues(BatteryPoint point) {
         batteryPercent.setText("Batt: " + point.level + "%");
-        batteryVoltage.setText("Volt: " + Float.toString(point.getVoltage()) + " v");
+        batteryVoltage.setText("Volt: " + Float.toString(point.voltage) + " v");
         batteryHealth.setText("Health: " + point.health);
         batteryStatus.setText(point.status);
         batteryTech.setText("Tech: " + point.technology);
         batteryTemp.setText("Temp: " + (
                 (UnitLocale.getDefault() == UnitLocale.Imperial) ?
-                        Float.toString(point.getTemperatureInFahrenheit()) + "\u2103" :
-                        Float.toString(point.getTemperatureInCelsius()) + "\u2109"
+                        Float.toString(point.getTemperatureInFahrenheit()) + "\u2109" :
+                        Float.toString(point.getTemperatureInCelsius()) + "\u2103"
         ));
         latestPoint = point;
 //        levelFragment.updateChart(point);
@@ -271,7 +273,7 @@ public class MainActivity extends ActionBarActivity
             return Metric;
         }
     }
-    /*
+
     private class ChartsAdapter extends FragmentPagerAdapter {
         String titles[] = {"Batt. %", "Voltage", "Temperature"};
 
@@ -308,5 +310,4 @@ public class MainActivity extends ActionBarActivity
             return titles.length;
         }
     }
-    */
 }
